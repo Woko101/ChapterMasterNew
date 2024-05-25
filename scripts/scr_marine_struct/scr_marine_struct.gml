@@ -4,7 +4,7 @@
 	role[100][14]:{"armour":[["MK3 Iron Armour",25]],
 	role[100][15]:{"armour":[["MK3 Iron Armour", 10]]}, //apothecary
 	role[100][16]:{"armour":},
-	"Standard Bearer":{"armour":[["MK3 Iron Armour", 3]]},
+	obj_ini.role[100][11]:{"armour":[["MK3 Iron Armour", 3]]},
 	role[100][7]:{"armour":[]},  //company champion
 	role[100][8]:{"armour":[["MK8 Errant", 3],["MK3 Iron Armour", 3],["MK4 Maximus", 3],["MK5 Heresy", 3]]},     //tacticals
 	role[100][10]:{"armour":},		
@@ -1380,7 +1380,7 @@ function TTRPG_stats(faction, comp, mar, class = "marine") constructor{
 		}
 	};
 	static age = function(){
-		var real_age = ((obj_controller.millenium*1000)+obj_controller.year)-obj_ini.age[company][marine_number];
+		var real_age = obj_ini.age[company][marine_number];
 		return real_age;
 	};// age
 
@@ -1514,7 +1514,7 @@ function TTRPG_stats(faction, comp, mar, class = "marine") constructor{
 	    	qual_string = "no_items";
 	    }
 	    if (new_weapon=="Company Standard"){
-	    	if (unit.role()!="Standard Bearer"){
+	    	if (role()!=obj_ini.role[100][11]){
 	    		viable = false;
 	    		qual_string = "wrong_role";
 	    	}
@@ -1527,7 +1527,7 @@ function TTRPG_stats(faction, comp, mar, class = "marine") constructor{
   	var change_wep = weapon_one();
   	var weapon_list = [];
     if (new_weapon == "Heavy Ranged"){
-    	weapon_list=["Heavy Bolter","Lascannon","Missile Launcher"];
+    	weapon_list=["Multi-Melta", "Heavy Bolter","Lascannon","Missile Launcher"];
     	if array_contains(weapon_list, change_wep){
     		return "no change";
     	}
@@ -2200,19 +2200,6 @@ function TTRPG_stats(faction, comp, mar, class = "marine") constructor{
 		}
 		return is_at_loc;
 	}
-	static spawn_exp =function(){
-		var spawn_ex = 0;
-		if (obj_ini.company_spawn_buffs[company] != 0){
-			spawn_ex += floor(gauss(obj_ini.company_spawn_buffs[company][0], obj_ini.company_spawn_buffs[company][1]));	//finds the on game spwan buff a marine should get from being spawned at game start
-		}
-		if (struct_exists(obj_ini.role_spawn_buffs, role())){ //adds exp buffs based on marine's role
-			if (obj_ini.role_spawn_buffs[$ role()] != 0){
-				spawn_ex += floor(gauss(obj_ini.role_spawn_buffs[$ role()][0], obj_ini.role_spawn_buffs[$ role()][1]));
-			}
-		}
-		if (spawn_ex != 0){add_exp(spawn_ex)}  //update the marines exp with updated guass value
-
-	};
 
 	static edit_corruption = function (edit){
 		corruption = edit > 0 ?min(100, corruption+edit) : max(0, corruption+edit);
@@ -2259,223 +2246,26 @@ function TTRPG_stats(faction, comp, mar, class = "marine") constructor{
 		return [points,reasons];
 	}
 
-	static spawn_old_guard =function(){
-		var old_guard=irandom(100);
-		var age = (obj_ini.millenium*1000)+obj_ini.year-4 - (company * 3);
-		repeat(10-company){
-			age -= (irandom(30));
-		}
+	static roll_history_armour = function(){
+		var old_guard = irandom(100);
+
 		var bionic_count = choose(0,0,0,0,1,2,3);
 		if (global.chapter_name=="Iron Hands"){
 			bionic_count = choose(2,3,4,5);
 		}
 		switch(role()){
 			case obj_ini.role[100][5]:  //captain
-				if(old_guard>=75){
-					update_armour("MK3 Iron Armour",false,false);
-					age -= gauss(400, 200);
+				if(old_guard>=80 || company == 1){
+					update_armour(choose("MK3 Iron Armour","MK4 Maximus", "MK5 Heresy"),false,false)
+					add_trait("ancient");
+					add_exp(choose(100,75));	
+					bionic_count = choose(0,0,1,2,3)
+				} else {
+					update_armour(choose("MK6 Corvus","MK7 Aquila","MK8 Errant"),false,false);
 					add_trait("old_guard");
 					add_exp(50);
-					bionic_count = choose(0,0,1,2,3)
-				} // 25% of iron within
-				else{
-					update_armour(choose("MK5 Heresy","MK6 Corvus","MK7 Aquila", "MK4 Maximus","MK8 Errant"),false,false);
-					age -= gauss(400, 25);
-					add_trait("seasoned");
-					add_exp(25);
+					bionic_count = choose(0,0,0,1,2)
 				}
-				break;
-			case  obj_ini.role[100][15]:  //apothecary
-				update_armour("MK7 Aquila",false,false);
-				if (company<=2){update_armour(choose("MK8 Errant","MK6 Corvus"),false,false)
-				}else{
-					update_armour(choose("MK5 Heresy","MK6 Corvus","MK7 Aquila", "MK4 Maximus","MK8 Errant"),false,false);
-				}
-				age -= gauss(400, 250);
-				if (intelligence<40){
-					intelligence=40;
-				}
-				break;
-			case "Standard Bearer":
-				 update_armour("MK5 Heresy",false,false);
-				 age -= gauss(400, 250);
-				break;
-			case  obj_ini.role[100][8]:		//tacticals
-				if (old_guard=99){
-						update_armour("MK3 Iron Armour",false,false)
-						age -= gauss(600, 150);
-						add_trait("ancient");
-						add_exp(choose(100,75,50));	
-					} // 1%
-					else if (old_guard>=97 and old_guard<=99){
-						update_armour("MK4 Maximus",false,false)
-						age -= gauss(500, 100);
-						add_trait("old_guard");	
-						add_exp(choose(75,50));
-					} //3%
-					else if (old_guard>=91 and old_guard<=96){
-						update_armour("MK5 Heresy",false,false);
-						age -= gauss(300, 100);
-						add_trait("seasoned");
-						add_exp(choose(25,50));
-					} // 6%
-					else if (old_guard>=79 and old_guard<=90){
-						update_armour("MK6 Corvus",false,false);
-						age -= gauss(250, 25);
-						add_exp(choose(10,25));
-					} // 12%
-					else if (company<=2){
-						update_armour("MK6 Corvus",false,false)
-						} // company 1 and 2 taccies get beakies by default
-					else{update_armour("MK7 Aquila",false,false)};
-				break;
-			case  obj_ini.role[100][10]:		//assualts
-				// due to assault marines not wanting corvus due to worse ac, given them better chances with melee oriented armours. 
-				// melee is risky af anyway so let's reward players who go assault marine heavy at game start
-				if (old_guard>=99 and old_guard<=97){
-					update_armour("MK8 Errant",false,false);
-					age -= gauss(150, 30);
-					add_exp(25);
-				} // 3% 
-				else if (old_guard>=91 and old_guard<=96){
-					update_armour("MK3 Iron Armour",false,false);
-					age -= gauss(600, 100);
-					add_trait(choose("ancient","old_guard"),false,false);
-					add_exp(choose(10, 30, 50));
-				} // 6% 
-				else if (old_guard>=80 and old_guard<=90){
-					update_armour("MK4 Maximus",false,false);
-					age -= gauss(300, 75);
-					add_trait("old_guard")
-					add_exp(25);
-				} // 12%
-				else if (old_guard>=57 and old_guard<=79){
-					update_armour("MK5 Heresy",false,false);
-					age -= gauss(240, 40);
-					add_trait("seasoned")
-					add_exp(choose(10,25));
-				} // 24%
-				else{
-					update_armour("MK7 Aquila",false,false);
-					age -= gauss(150, 30);
-				};
-				break;	
-			case  obj_ini.role[100][9]: 		//devastators	
-				if ((old_guard>=99) and (old_guard<=97)){
-					update_armour("MK4 Maximus",false,false);
-					age -= gauss(300, 100);
-					add_trait(choose("ancient","old_guard"));
-					add_exp(choose(25, 50));
-				} // 3% for maximus
-				else if (old_guard>=78 and old_guard<=96){
-					update_armour("MK6 Corvus",false,false);
-					age -= gauss(200, 50);
-					add_trait("seasoned");
-					add_exp(25);
-				} // 20% chance for devos to have ranged armor, wouldn't want much else
-				else if (company<=2) {
-					update_armour("MK6 Corvus",false,false);
-				} // company 1 and 2 taccies get beakies by default
-				else{update_armour("MK7 Aquila",false,false)};
-				break;
-			case  obj_ini.role[100][3]: //veterans
-				if ((old_guard>=80)and (old_guard>=95)){
-					update_armour(choose("MK4 Maximus","MK8 Errant"),false,false);
-					age -= gauss(150, 30);
-					add_trait(choose("old_guard"));
-					add_exp(choose(50, 75));					
-				} else if (old_guard>95){
-					update_armour(choose("MK4 Maximus","MK3 Iron Armour"),false,false);
-					age -= gauss(300, 100);
-					add_trait(choose("old_guard"));
-					add_exp(choose(125, 100));
-				} else if (old_guard<35){
-					update_armour(choose("MK4 Maximus","MK3 Iron Armour"),false,false);
-					age -= gauss(150, 30);
-					add_trait(choose("old_guard"));
-					add_exp(choose(25, 50));					
-				}
-				if (global.chapter_name=="Ultramarines"){
-					if (choose(true,false)){
-						add_trait("tyrannic_vet");
-						bionic_count+=irandom(1);
-					}
-				}
-				break;
-			case obj_ini.role[100][16]: //techmarines
-				update_armour(choose("MK8 Errant","MK6 Corvus","MK4 Maximus","MK3 Iron Armour"),false,false)
-				if ((global.chapter_name=="Iron Hands" || obj_ini.progenitor=6 || array_contains(obj_ini.dis, "Tech-Heresy"))){
-					add_bionics("right_arm","standard",false);
-					bionic_count = choose(6,6,7,7,7,8,9);
-					add_trait("flesh_is_weak");
-					var tech_heresy = irandom(19);
-				}else {
-			    	bionic_count = irandom(5)+1;
-				  if (irandom(2) ==0){
-				    add_trait("flesh_is_weak");
-				  }
-				  var tech_heresy = irandom(49);
-			  	}
-			  	if (array_contains(obj_ini.dis, "Tech-Heresy")){
-			  		var tech_heresy = irandom(10);
-			  		technology+=4;
-			  	}
-			  	if (tech_heresy==0){
-			  		add_trait("tech_heretic");
-			  		edit_corruption(30);
-			  	}
-				if (technology<35){
-					technology=35;
-				}
-			  add_trait("mars_trained");
-			  if (irandom(1) ==0){
-			    add_trait("tinkerer");
-			  }
-			  if (religion !="cult_mechanicus"){
-			  	religion_sub_cult = "none";
-			  }
-			  if (array_contains(obj_ini.adv, "Crafters")){
-			  	if (irandom(2)==0){
-			  		add_trait("crafter");
-			  	}
-			  } else if (obj_ini.progenitor==8 || obj_ini.progenitor==6){
-			  	technology+=2;
-			  	if (irandom(4)==0){
-			  		add_trait("crafter");
-			  	}			  	
-			  }
-			  religion = "cult_mechanicus"	
-			  add_exp(irandom(50));
-				break;
-			case  obj_ini.role[100][12]: //scouts
-				bionic_count = choose(0,0,0,0,0,0,0,0,0,0,0,1);
-				break;
-			case  obj_ini.role[100][14]:  //chaplain
-				update_armour(choose("MK5 Heresy","MK6 Corvus","MK7 Aquila", "MK4 Maximus","MK8 Errant"),false,false);
-				age -= gauss(400, 250);
-				if (piety<35){
-					piety=35;
-				}
-				if(irandom(1) ==0){
-					add_trait("zealous_faith")
-				}
-				add_exp(irandom(50));
-				break;
-			case "Codiciery":
-				update_armour(choose("MK5 Heresy","MK6 Corvus","MK7 Aquila", "MK4 Maximus","MK8 Errant"),false,false);
-				age -= gauss(150, 20);
-				break;
-			case "Lexicanum":
-				update_armour(choose("MK5 Heresy","MK6 Corvus","MK7 Aquila", "MK4 Maximus","MK8 Errant"),false,false);
-				age -= gauss(200, 30);
-				add_trait("seasoned");
-				break;
-			case obj_ini.role[100,17]:
-				update_armour(choose("MK5 Heresy","MK6 Corvus","MK7 Aquila", "MK4 Maximus","MK8 Errant"),false,false);
-				age -= gauss(400, 250);
-				add_trait("seasoned");
-				break;	
-			case obj_ini.role[100][Role.CAPTAIN]:
 				charisma += (irandom(10));
 				wisdom += (irandom(10));
 				piety += (irandom(10));
@@ -2495,7 +2285,257 @@ function TTRPG_stats(faction, comp, mar, class = "marine") constructor{
 					}
 				}
 				break;
-
+			case  obj_ini.role[100][15]:  //apothecary
+				if company > 0 {
+					if(old_guard>=80 || company == 1){
+						update_armour(choose("MK3 Iron Armour","MK4 Maximus", "MK5 Heresy"),false,false)
+						add_trait("ancient");
+						add_exp(choose(100,75));	
+						bionic_count = choose(0,0,1,2,3)
+					} else{
+						update_armour(choose("MK6 Corvus","MK7 Aquila","MK8 Errant"),false,false);
+						add_trait("old_guard");
+						add_exp(50);
+						bionic_count = choose(0,0,0,1,2)
+					}
+				} else {
+					update_armour(choose("MK7 Aquila"),false,false);
+					add_trait("seasoned");
+					add_exp(25);
+					bionic_count = choose(0,0,0,0,1)
+				}
+				if (intelligence<40){
+					intelligence=40;
+				}
+				break;
+			case obj_ini.role[100][11]: // Ancient
+				if(old_guard>=50 || company == 1){
+					update_armour(choose("MK3 Iron Armour","MK4 Maximus", "MK5 Heresy"),false,false)
+					add_trait("ancient");
+					add_exp(choose(100,75));	
+					bionic_count = choose(0,0,1,2,3)
+				} else{
+					update_armour(choose("MK6 Corvus","MK7 Aquila","MK8 Errant"),false,false);
+					add_trait("old_guard");
+					add_exp(50);
+					bionic_count = choose(0,0,0,1,2)
+				}
+				break;
+			case  obj_ini.role[100][8]:		//tacticals
+				if (old_guard=99){
+						update_armour("MK3 Iron Armour",false,false)
+						add_trait("ancient");
+						add_exp(choose(100,75,50));	
+					} // 1%
+					else if (old_guard>=97 and old_guard<=99){
+						update_armour("MK4 Maximus",false,false)
+						add_trait("old_guard");	
+						add_exp(choose(75,50));
+					} //3%
+					else if (old_guard>=91 and old_guard<=96){
+						update_armour("MK5 Heresy",false,false);
+						add_trait("seasoned");
+						add_exp(choose(25,50));
+					} // 6%
+					else if (old_guard>=79 and old_guard<=90){
+						update_armour("MK6 Corvus",false,false);
+						add_exp(choose(10,25));
+					} // 12%
+					else if (company<=2){
+						update_armour("MK6 Corvus",false,false)
+						} // company 1 and 2 taccies get beakies by default
+					else{update_armour("MK7 Aquila",false,false)};
+				break;
+			case  obj_ini.role[100][10]:		//assualts
+				// due to assault marines not wanting corvus due to worse ac, given them better chances with melee oriented armours. 
+				// melee is risky af anyway so let's reward players who go assault marine heavy at game start
+				if (old_guard>=99 and old_guard<=97){
+					update_armour("MK8 Errant",false,false);
+					add_exp(25);
+				} // 3% 
+				else if (old_guard>=91 and old_guard<=96){
+					update_armour("MK3 Iron Armour",false,false);
+					add_trait(choose("ancient","old_guard"),false,false);
+					add_exp(choose(10, 30, 50));
+				} // 6% 
+				else if (old_guard>=80 and old_guard<=90){
+					update_armour("MK4 Maximus",false,false);
+					add_trait("old_guard")
+					add_exp(25);
+				} // 12%
+				else if (old_guard>=57 and old_guard<=79){
+					update_armour("MK5 Heresy",false,false);
+					add_trait("seasoned")
+					add_exp(choose(10,25));
+				} // 24%
+				else{
+					update_armour("MK7 Aquila",false,false);
+				};
+				break;	
+			case  obj_ini.role[100][9]: 		//devastators	
+				if ((old_guard>=99) and (old_guard<=97)){
+					update_armour("MK4 Maximus",false,false);
+					add_trait(choose("ancient","old_guard"));
+					add_exp(choose(25, 50));
+				} // 3% for maximus
+				else if (old_guard>=78 and old_guard<=96){
+					update_armour("MK6 Corvus",false,false);
+					add_trait("seasoned");
+					add_exp(25);
+				} // 20% chance for devos to have ranged armor, wouldn't want much else
+				else if (company<=2) {
+					update_armour("MK6 Corvus",false,false);
+				} // company 1 and 2 taccies get beakies by default
+				else{update_armour("MK7 Aquila",false,false)};
+				break;
+			case  obj_ini.role[100][3]: //veterans
+				if ((old_guard>=80)and (old_guard>=95)){
+					update_armour(choose("MK4 Maximus","MK8 Errant"),false,false);
+					add_trait(choose("old_guard"));
+					add_exp(choose(50, 75));					
+				} else if (old_guard>95){
+					update_armour(choose("MK4 Maximus","MK3 Iron Armour"),false,false);
+					add_trait(choose("old_guard"));
+					add_exp(choose(125, 100));
+				} else if (old_guard<35){
+					update_armour(choose("MK4 Maximus","MK3 Iron Armour"),false,false);
+					add_trait(choose("old_guard"));
+					add_exp(choose(25, 50));					
+				}
+				if (global.chapter_name=="Ultramarines"){
+					if (choose(true,false)){
+						add_trait("tyrannic_vet");
+						bionic_count+=irandom(1);
+					}
+				}
+				break;
+			case obj_ini.role[100][16]: //techmarines
+				if ((old_guard >= 90 && company > 0 && company < 6) || company == 1){
+					update_armour(choose("Artificer Armour"),false,false)
+					add_trait("ancient");
+					add_exp(100);	
+					bionic_count = choose(1,2,3,4,5)
+				} else if (company > 0 && company < 6){
+					update_armour(choose("MK6 Corvus","MK7 Aquila","MK8 Errant", "Artificer Armour"),false,false);
+					add_trait("old_guard");
+					add_exp(50);
+					bionic_count = choose(1,1,2,3,4)
+				} else {
+					update_armour(choose("MK6 Corvus","MK7 Aquila","MK8 Errant"),false,false);
+					add_trait("seasoned");
+					add_exp(25);
+					bionic_count = choose(1,1,1,2,3)
+				}
+				if ((global.chapter_name == "Iron Hands" || obj_ini.progenitor = 6 || array_contains(obj_ini.dis, "Tech-Heresy"))) {
+					add_bionics("right_arm", "standard", false);
+					bionic_count = choose(6, 6, 7, 7, 7, 8, 9);
+					add_trait("flesh_is_weak");
+					var tech_heresy = irandom(19);
+				} else {
+					bionic_count = irandom(5) + 1;
+					if (irandom(2) == 0) {
+						add_trait("flesh_is_weak");
+					}
+					var tech_heresy = irandom(49);
+				}
+				if (array_contains(obj_ini.dis, "Tech-Heresy")) {
+					var tech_heresy = irandom(10);
+					technology += 4;
+				}
+				if (tech_heresy == 0) {
+					add_trait("tech_heretic");
+					edit_corruption(30);
+				}
+				if (technology < 35) {
+					technology = 35;
+				}
+				add_trait("mars_trained");
+				if (irandom(1) == 0) {
+					add_trait("tinkerer");
+				}
+				if (religion != "cult_mechanicus") {
+					religion_sub_cult = "none";
+				}
+				if (array_contains(obj_ini.adv, "Crafters")) {
+					if (irandom(2) == 0) {
+						add_trait("crafter");
+					}
+				} else if (obj_ini.progenitor == 8 || obj_ini.progenitor == 6) {
+					technology += 2;
+					if (irandom(4) == 0) {
+						add_trait("crafter");
+					}
+				}
+				religion = "cult_mechanicus"
+				add_exp(irandom(50));
+				break;
+			case  obj_ini.role[100][12]: //scouts
+				bionic_count = choose(0,0,0,0,0,0,0,0,0,0,0,1);
+				break;
+			case  obj_ini.role[100][14]:  //chaplain
+				if company > 0 {
+					if(old_guard>=80 || company == 1){
+						update_armour(choose("MK3 Iron Armour","MK4 Maximus", "MK5 Heresy"),false,false)
+						add_trait("ancient");
+						add_exp(100);	
+						bionic_count = choose(0,0,1,2,3)
+					} else {
+						update_armour(choose("MK6 Corvus","MK7 Aquila","MK8 Errant"),false,false);
+						add_trait("old_guard");
+						add_exp(50);
+						bionic_count = choose(0,0,0,1,2)
+					}
+				} else {
+					update_armour(choose("MK7 Aquila"),false,false);
+					add_trait("seasoned");
+					add_exp(25);
+					bionic_count = choose(0,0,0,0,1)
+				}
+				if (piety<35){
+					piety=35;
+				}
+				if(irandom(1) ==0){
+					add_trait("zealous_faith")
+				}
+				break;
+			case "Codiciery":
+				update_armour(choose("MK6 Corvus", "MK7 Aquila"),false,false);
+				break;
+			case "Lexicanum":
+				update_armour(choose("MK6 Corvus", "MK7 Aquila"),false,false);
+				add_trait("seasoned");
+				break;
+			case obj_ini.role[100][Role.LIBRARIAN]:
+				if ((old_guard >= 90 && company > 0 && company < 6) || company == 1){
+					update_armour(choose("MK3 Iron Armour","MK4 Maximus", "MK5 Heresy"),false,false)
+					add_trait("ancient");
+					add_exp(100);	
+					bionic_count = choose(0,0,1,2,3)
+				} else if (company > 0 && company < 6){
+					update_armour(choose("MK6 Corvus","MK7 Aquila","MK8 Errant"),false,false);
+					add_trait("old_guard");
+					add_exp(50);
+					bionic_count = choose(0,0,0,1,2)
+				} else {
+					update_armour(choose("MK6 Corvus", "MK7 Aquila"),false,false);
+					add_trait("seasoned");
+					add_exp(25);
+					bionic_count = choose(0,0,0,0,1)
+				}
+				break;	
+			case obj_ini.role[100][Role.COMPANY_CHAMPION]:
+				if(old_guard>=80 || company == 1){
+					update_armour(choose("MK3 Iron Armour","MK4 Maximus", "MK5 Heresy"),false,false)
+					add_trait("ancient");
+					add_exp(choose(100,75));	
+					bionic_count = choose(0,0,1,2,3)
+				} else{
+					update_armour(choose("MK6 Corvus","MK7 Aquila","MK8 Errant"),false,false);
+					add_trait("old_guard");
+					add_exp(50);
+					bionic_count = choose(0,0,0,1,2)
+				}
+				break;
 		}
 		if (irandom(75)>74){
 			add_trait("tyrannic_vet");
@@ -2528,8 +2568,97 @@ function TTRPG_stats(faction, comp, mar, class = "marine") constructor{
 		if (irandom(3)==0){
 			body[$ "right_leg"][$ "purity_seal"] = [irandom(1),irandom(1),irandom(1),];
 		}	
+	}
 
+	static roll_age = function(){
+		var age = 0;
+		var company_age = 0;
+		var role_age = 0;
+		var minimum_age = 0;
+
+		switch(company){
+			case 1:
+				company_age = 70;
+				break;
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+				company_age = 50;
+				break;
+			case 7:
+				company_age = 30;
+				break;
+			case 8:
+				company_age = 20;
+				break;
+			case 9:
+				company_age = 10;
+				break;
+			case 10:
+				company_age = 0;
+				break;
+			default:
+				break;
+		}
+
+		switch(role()){
+			case obj_ini.role[100][Role.HONOR_GUARD]:
+				role_age = 140;
+				break;
+			case obj_ini.role[100][Role.VETERAN]:
+				role_age = 30;
+				break;
+			case obj_ini.role[100][Role.TERMINATOR]:
+				role_age = 30;
+				break;
+			case obj_ini.role[100][Role.CAPTAIN]:
+				role_age = 40;
+				break;
+			case obj_ini.role[100][Role.DREADNOUGHT]:
+				role_age = 500;
+				break;
+			case obj_ini.role[100][Role.COMPANY_CHAMPION]:
+				role_age = 30;
+				break;
+			case obj_ini.role[100][Role.TACTICAL]:
+			case obj_ini.role[100][Role.DEVASTATOR]:
+			case obj_ini.role[100][Role.ASSAULT]:
+				role_age = 20;
+				break;
+			case obj_ini.role[100][Role.ANCIENT]:
+				role_age = 80;
+				break;
+			case obj_ini.role[100][Role.SCOUT]:
+				role_age = 18;
+				break;
+			case obj_ini.role[100][Role.CHAPLAIN]:
+			case obj_ini.role[100][Role.APOTHECARY]:
+			case obj_ini.role[100][Role.TECHMARINE]:
+			case obj_ini.role[100][Role.LIBRARIAN]:
+				role_age = 50;
+				break;
+			case obj_ini.role[100][Role.SERGEANT]:
+				role_age = 25;
+				break;
+			case obj_ini.role[100][Role.VETERAN_SERGEANT]:
+				role_age = 30;
+				break;
+		}
+		minimum_age = company_age + role_age;
+		age = gauss(minimum_age, minimum_age / 3);
+		for(var i = 0; age < minimum_age; i++){
+			age = gauss(minimum_age, minimum_age / 3);
+		}
 		update_age(floor(age));	
+	}
+
+	static roll_exp = function() {
+		var _exp = 0;
+		var _age_bonus = age() - 20;
+		_exp = max(0, floor(gauss(_age_bonus, _age_bonus / 10)));
+		update_exp(_exp);
 	}
 
 	static set_default_equipment= function(from_armoury=true, to_armoury=true, quality="any"){
@@ -2593,6 +2722,99 @@ function TTRPG_stats(faction, comp, mar, class = "marine") constructor{
 				weapon_two_data:weapon_two_data
 			};
 		return equip_data;
+	}
+
+	static set_unit_shader = function(){
+		shader_set(sReplaceColor);
+        shader_set_uniform_f(obj_controller.colour_to_find1, obj_controller.sourceR1,obj_controller.sourceG1,obj_controller.sourceB1 );//body  
+        shader_set_uniform_f(obj_controller.colour_to_set1, obj_controller.targetR1,obj_controller.targetG1,obj_controller.targetB1 );
+        shader_set_uniform_f(obj_controller.colour_to_find2, obj_controller.sourceR2,obj_controller.sourceG2,obj_controller.sourceB2 );//helm   
+        shader_set_uniform_f(obj_controller.colour_to_set2, obj_controller.targetR2,obj_controller.targetG2,obj_controller.targetB2 );
+        shader_set_uniform_f(obj_controller.colour_to_find3, obj_controller.sourceR3,obj_controller.sourceG3,obj_controller.sourceB3 );       
+        shader_set_uniform_f(obj_controller.colour_to_set3, obj_controller.targetR3,obj_controller.targetG3,obj_controller.targetB3 );
+        shader_set_uniform_f(obj_controller.colour_to_find4, obj_controller.sourceR4,obj_controller.sourceG4,obj_controller.sourceB4 );   //lens   
+        shader_set_uniform_f(obj_controller.colour_to_set4, obj_controller.targetR4,obj_controller.targetG4,obj_controller.targetB4 );
+        shader_set_uniform_f(obj_controller.colour_to_find5, obj_controller.sourceR5,obj_controller.sourceG5,obj_controller.sourceB5 );
+        shader_set_uniform_f(obj_controller.colour_to_set5, obj_controller.targetR5,obj_controller.targetG5,obj_controller.targetB5 );
+        shader_set_uniform_f(obj_controller.colour_to_find6, obj_controller.sourceR6,obj_controller.sourceG6,obj_controller.sourceB6 );
+        shader_set_uniform_f(obj_controller.colour_to_set6, obj_controller.targetR6,obj_controller.targetG6,obj_controller.targetB6 );
+        shader_set_uniform_f(obj_controller.colour_to_find7, obj_controller.sourceR7,obj_controller.sourceG7,obj_controller.sourceB7 );
+        shader_set_uniform_f(obj_controller.colour_to_set7, obj_controller.targetR7,obj_controller.targetG7,obj_controller.targetB7 );
+        // Special specialist stuff here
+        ttrim=obj_controller.trim;
+		specialist_colours=obj_ini.col_special;
+        if (global.chapter_name=="Dark Angels" && company=1){
+            if (role()==obj_ini.role[100][4])then ui_coloring="bone";
+            if (company==1){
+                if (string_count("Terminator",armour())>0 || armour()=="Tartaros"){
+                    if (array_contains([obj_ini.role[100][5],obj_ini.role[100][7],obj_ini.role[100][19],"Standard Bearer"],role())){
+                        ui_coloring="bone";
+                    }
+                }
+            }
+        }else if ((role()==obj_ini.role[100,2] || role()=="Chapter Master")) and (global.chapter_name=="Blood Angels") then ui_coloring="gold";           		
+		// Chaplain
+        if (IsSpecialist("chap",true)) || (IsSpecialist("apoth",true) && global.chapter_name=="Space Wolves"){
+            shader_set_uniform_f(obj_controller.colour_to_set1, 30/255,30/255,30/255);
+            shader_set_uniform_f(obj_controller.colour_to_set2, 30/255,30/255,30/255);
+            // ttrim=0;
+            specialist_colours=0;
+        }
+		
+		// Apothecary
+        else if (IsSpecialist("apoth",true) and (global.chapter_name!="Space Wolves")){
+            shader_set_uniform_f(obj_controller.colour_to_set1, 255/255,255/255,255/255);
+            shader_set_uniform_f(obj_controller.colour_to_set2, 255/255,255/255,255/255);
+            ttrim=0;
+            specialist_colours=0;
+        }
+		
+		// Techmarine
+        else if (IsSpecialist("forge",true)){
+            shader_set_uniform_f(obj_controller.colour_to_set1, 150/255,0/255,0/255);
+            shader_set_uniform_f(obj_controller.colour_to_set2, 150/255,0/255,0/255);
+            // pauldron
+            shader_set_uniform_f(obj_controller.colour_to_set4, 0/255,70/255,0/255);
+            shader_set_uniform_f(obj_controller.colour_to_set5, 200/255,200/255,200/255);
+            ttrim=1;specialist_colours=0;
+        }
+		
+		// Death Company
+        else if (role()=="Death Company"){
+            shader_set_uniform_f(obj_controller.colour_to_set1, 30/255,30/255,30/255);
+            shader_set_uniform_f(obj_controller.colour_to_set2, 30/255,30/255,30/255);
+            shader_set_uniform_f(obj_controller.colour_to_set3, 30/255,30/255,30/255);
+            shader_set_uniform_f(obj_controller.colour_to_set4, 124/255,0/255,0/255);// Lens
+            shader_set_uniform_f(obj_controller.colour_to_set5, 30/255,30/255,30/255);
+            shader_set_uniform_f(obj_controller.colour_to_set6, 30/255,30/255,30/255);
+            shader_set_uniform_f(obj_controller.colour_to_set7, 124/255,0/255,0/255);// Weapon
+            ttrim=0;
+            specialist_colours=0;
+            
+        }
+		// Deathwing
+		if (struct_exists(self,"ui_coloring")){
+	        if (ui_coloring="bone"){
+	            shader_set_uniform_f(obj_controller.colour_to_set1, 229/255,200/255,123/255);
+	            shader_set_uniform_f(obj_controller.colour_to_set2, 229/255,200/255,123/255);
+	            shader_set_uniform_f(obj_controller.colour_to_set3, 229/255,200/255,123/255);
+	            shader_set_uniform_f(obj_controller.colour_to_set5, 229/255,200/255,123/255);
+	            shader_set_uniform_f(obj_controller.colour_to_set6, 229/255,200/255,123/255);
+	            ttrim=0;
+	            specialist_colours=0;
+	        }
+			
+			// Blood Angels
+	        else if (ui_coloring="gold"){
+	            shader_set_uniform_f(obj_controller.colour_to_set1, 166/255,129/255,0/255);
+	            shader_set_uniform_f(obj_controller.colour_to_set2, 166/255,129/255,0/255);
+	            shader_set_uniform_f(obj_controller.colour_to_set3, 166/255,129/255,0/255);
+	            shader_set_uniform_f(obj_controller.colour_to_set5, 166/255,129/255,0/255);
+	            shader_set_uniform_f(obj_controller.colour_to_set6, 166/255,129/255,0/255);
+	            ttrim=0;
+	            specialist_colours=0;
+	        }
+	    }	
 	}
 	static equipped_artifacts=function(){
 		artis = [
