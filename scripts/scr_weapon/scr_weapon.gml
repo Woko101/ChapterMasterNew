@@ -405,7 +405,7 @@ global.weapons={
         "tags":["power", "axe"],
     },    
     "Power Fist": {
-       "abbreviation": "PwrFst",       
+        "abbreviation": "PwrFst",       
         "attack": {
             "standard": 450,
             "master_crafted": 500,
@@ -417,12 +417,45 @@ global.weapons={
             "artifact": 1
         },
         "description": "A large, ceramite clad gauntlet surrounded by an power energy field. Though cumbersome to use, it dishes out tremendous damage to enemies, leaving very little behind.",
-        "melee_hands": 1.1,
+        "melee_hands": 1,
         "ranged_hands": 1,
         "ammo": 0,
         "range": 1,
         "spli": 2,
         "arp": 1,
+        "tags":["power","fist"],
+    },
+    "Power Fists": {
+        "abbreviation": "PwrFsts", 
+        "attack": {
+            "standard": 900,
+            "master_crafted": 1000,
+            "artifact": 1200
+        },
+        "description": "A large, ceramite clad gauntlets surrounded by power energy fields. Though cumbersome to use, they dish out tremendous damage to enemies, leaving very little behind.",
+        "melee_hands": 2,
+        "ranged_hands": 2,
+        "ammo": 0,
+        "range": 1,
+        "spli": 4,
+        "arp": 1,
+        "tags":["power","fist","pair"],
+    },
+    "Boltstorm Gauntlet": {
+        "abbreviation": "BlstGnt", 
+        "attack": {
+            "standard": 450,
+            "master_crafted": 500,
+            "artifact": 600
+        },
+        "description": "The Boltstorm Gauntlet is a Power Fists with an Integrated Bolter, so aside from being reinforced with a crackling power field and able to crush armour, bone and even thick vehicle plating, it is also capable of firing bolts at an astonishing rate",
+        "melee_hands": 2,
+        "ranged_hands": 2,
+        "ammo": 0,
+        "range": 1,
+        "spli": 2,
+        "arp": 1,
+        "second_profiles":["Integrated Bolter"],
         "tags":["power","fist"],
     },
     "Lightning Claw": {
@@ -718,7 +751,7 @@ global.weapons={
         },
         "description": "A huge vehicle-mounted flame weapon that fires with explosive force. The reservoir is liable to explode.",
         "melee_hands": 0,
-        "ranged_hands": 2.25,
+        "ranged_hands": 3,
         "ammo": 0,
         "range": 3.1,
         "spli": 20,
@@ -846,7 +879,7 @@ global.weapons={
         },
         "description": "A heavy rotary autocannon with a devastating fire rate that can be counted in the hundreds per minute. It is incredibly effective against infantry and lightly armored targets.",
         "melee_hands": 2.1,
-        "ranged_hands": 2.25,
+        "ranged_hands": 3,
         "ammo": 5,
         "range": 12,
         "spli": 20,
@@ -878,7 +911,7 @@ global.weapons={
         },
         "description": "This shoulder mounted weapon is capable of firing either armor-piercing or fragmentation rockets. It's ammunition is limited by what the bearer has carried with them.",
         "melee_hands": 1,
-        "ranged_hands": 2.25,
+        "ranged_hands": 2,
         "ammo": 6,
         "range": 24,
         "spli": 3,
@@ -931,44 +964,7 @@ global.weapons={
         "spli": 3,
         "arp": 1,
         "tags":["bolt"]
-    },
-    "Power Fist with Intergrated Bolters": {
-       "abbreviation": "PwrFstBltr",       
-        "attack": {
-            "standard": 450,
-            "master_crafted": 500,
-            "artifact": 600
-        },
-        "melee_mod": {
-            "standard": 1,
-            "master_crafted": 1,
-            "artifact": 1
-        },
-        "description": "This is a Power Fist weapon with bolters integrated into them to give the user ranged capabilities.",
-        "melee_hands": 1.1,
-        "ranged_hands": 1,
-        "ammo": 0,
-        "range": 1,
-        "spli": 3,
-        "arp": 1,
-        "second_profiles":["Integrated Bolters"],
-        "tags":["power","fist"],
-    },    
-    "Power Fists": {
-        "abbreviation": "PwrFists", 
-        "attack": {
-            "standard": 425,
-            "master_crafted": 467.5,
-            "artifact": 510
-        },
-        "description": "While not quite as strong as two Power Fists, these artifacts allow the use of an additional, third weapon.",
-        "melee_hands": 3,
-        "ranged_hands": 0,
-        "ammo": 0,
-        "range": 1,
-        "spli": 3,
-        "arp": 0
-    },
+    }, 
     "Twin Linked Heavy Bolter": {
         "abbreviation": "TwnHvyBltr", 
         "attack": {
@@ -1026,7 +1022,7 @@ global.weapons={
         },
         "description": "The Heavy Bolter is a heavy weapon that fires larger and more powerful bolt shells compared to the standard Bolter.",
         "melee_hands": 1,
-        "ranged_hands": 2.25,
+        "ranged_hands": 2,
         "ammo": 10,
         "range": 16,
         "spli": 6,
@@ -1938,7 +1934,23 @@ global.gear = {
         "abbreviation": "FrgAssLnchrs", 
         "description": "",
          "tags":["vehicle"],              
-    },             
+    },
+    "Combat Shield": {
+        "description":"A lighter, more maneuverable version of a Storm Shield. Due to its flexibility, Combat Shields leave other hand of a Space Marine free to use other hand-to-hand weaponry.",
+        "abbreviation": "CmbtShld",
+        "armour_value": {
+            "standard": 4,
+            "master_crafted": 6,
+            "artifact": 8
+        } ,
+        "weight":3,
+        "tags":["shield"],
+        "hp_mod":{
+          "standard": 10,
+          "master_crafted": 15,
+          "artifact": 20
+        },
+      },  
   },
   "mobility":{
    "Bike": {
