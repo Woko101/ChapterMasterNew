@@ -19,7 +19,7 @@ if (orbiting != 0 && action=="" && owner!=noone){
 }
 
 if ((trade_goods="Khorne_warband") or (trade_goods="Khorne_warband_landing_force")) and (owner=eFACTION.Chaos) {
-    khorne_fleet_cargo()
+    khorne_fleet_cargo();
 }
 
 if (orbiting != noone) {
@@ -389,8 +389,9 @@ if (navy) {
 	                        exit;
 	                    }
 	                    if (fleet_distance>500) {// Case 2; kind of far away, move closer
-	                        var dirr,diss,goto;diss=fleet_distance/2;goto=0;
-	                        dirr=point_direction(x,y,fleet_nearby.x,fleet_nearby.y);
+	                        var diss=fleet_distance/2;
+	                        var goto=0;
+	                        var dirr=point_direction(x,y,fleet_nearby.x,fleet_nearby.y);
                         
 	                        with(orbiting){y-=20000;}
 	                        goto=instance_nearest(x+lengthdir_x(diss,dirr),y+lengthdir_x(diss,dirr),obj_star);
@@ -1317,20 +1318,19 @@ if (action==""){
         }
     }
     
-    if (owner=eFACTION.Ork) and (action="") and (instance_exists(orbiting)){// Should fix orks converging on useless planets
-        var maxp,bad,i,hides,hide;maxp=0;bad=0;i=0;hides=1;hide=0;
+    if (owner=eFACTION.Ork) and (action=""){// Should fix orks converging on useless planets
         
-        bad = is_dead_star(orbiting);
+        var bad = is_dead_star(instance_nearest(x,y,obj_star));
         
         if (bad){
-            hides+=choose(0,1,2,3);
+            var hides=choose(1,2,3);
             
             repeat(hides){
                 instance_deactivate_object(instance_nearest(x,y,obj_star));
             }
             
             with(obj_star){
-            	if ((planets=1) and (p_type[1]="Dead")) or (owner=eFACTION.Ork) then instance_deactivate_object(id);
+            	if (is_dead_star()) or (owner=eFACTION.Ork) then instance_deactivate_object(id);
             }
             var nex=instance_nearest(x,y,obj_star);
             action_x=nex.x;
@@ -1768,7 +1768,7 @@ if (action="move") and (action_eta<5000){
                 with (stue){
                     if (p_type[tau_influence_planet]!="Dead"){
                     
-                        scr_alert("green","owner",$"Tau ship broadcasts subversive messages to {planet_numeral_name()}.",sta.x,sta.y);
+                        scr_alert("green","owner",$"Tau ship broadcasts subversive messages to {planet_numeral_name(tau_influence_planet)}.",sta.x,sta.y);
                         tau_influence = p_influence[tau_influence_planet][eFACTION.Tau]
                     
                         if (tau_influence_chance<=70) and (tau_influence<70){
